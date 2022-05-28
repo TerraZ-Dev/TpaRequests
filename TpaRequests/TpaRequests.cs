@@ -30,7 +30,7 @@ namespace TpaRequests
         {
             if (args.Parameters.Count < 1)
             {
-                args.Player.SendErrorMessage("Invalid parameters count. Try /tpa <plr name>");
+                args.Player.SendErrorMessage("Invalid command. Try /tpa <plr name>");
                 return;
             }
             
