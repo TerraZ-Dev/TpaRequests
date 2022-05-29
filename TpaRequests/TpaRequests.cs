@@ -23,6 +23,8 @@ namespace TpaRequests
         {
             RequestsManager.AddConfiguration("tp", new(true, false, true, true, 10));
 
+            ServerApi.Hooks.NetGreetPlayer.Register(this, OnGreet);
+
             Commands.ChatCommands.Add(new("tparequest", TpaRequestCommand, "tpa"));
             Commands.ChatCommands.Add(new("tparequest", TpAutoDenyCommand, "tpautodeny", "tpdeny", "tpad"));
             Commands.ChatCommands.Add(new("tparequest", TpAutoAcceptCommand, "tpautoaccept", "tpac"));
