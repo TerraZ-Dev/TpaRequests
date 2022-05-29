@@ -17,13 +17,15 @@ namespace TpaRequests
 
         public TpaRequestsPlugin(Main game) : base(game) { }
         public bool[] AutoDeny = new bool[Main.maxNetPlayers];
+        public bool[] AutoAccept = new bool[Main.maxNetPlayers];
 
         public override void Initialize()
         {
-            RequestsManager.AddConfiguration("tp", new RequestConfiguration(true, false, true, true, 10));
+            RequestsManager.AddConfiguration("tp", new(true, false, true, true, 10));
 
-            Commands.ChatCommands.Add(new Command("tparequest", TpaRequestCommand, "tpa"));
-            Commands.ChatCommands.Add(new Command("tparequest", TpAutoDenyCommand, "tpautodeny", "tpdeny"));
+            Commands.ChatCommands.Add(new("tparequest", TpaRequestCommand, "tpa"));
+            Commands.ChatCommands.Add(new("tparequest", TpAutoDenyCommand, "tpautodeny", "tpdeny", "tpad"));
+            Commands.ChatCommands.Add(new("tparequest", TpAutoAcceptCommand, "tpautoaccept", "tpac"));
         }
 
         public async void TpaRequestCommand(CommandArgs args)
@@ -50,7 +52,14 @@ namespace TpaRequests
 
             var player = players[0];
 
-            (Decision Decision, ICondition BrokenCondition) =
+            if (AutoAccept[player.Index])
+            {
+                args.Player.Teleport(player.X, player.Y);
+                player.SendInfoMessage("{0} teleported to you.", args.Player.Name);
+            }
+            else
+            {
+                (Decision Decision, ICondition BrokenCondition) =
                     await RequestsManager.GetDecision(player, args.Player, "tp",
                     new Messages(null, null, new Dictionary<MessageType, Message>()
                     {
@@ -58,8 +67,9 @@ namespace TpaRequests
                         [MessageType.AnnounceInbox] = new Message($"{args.Player.Name} requested teleportation")
                     }));
 
-            if (Decision == Decision.Accepted)
-                args.Player.Teleport(player.X, player.Y);
+                if (Decision == Decision.Accepted)
+                    args.Player.Teleport(player.X, player.Y);
+            }
         }
 
         public void TpAutoDenyCommand(CommandArgs args)
@@ -71,6 +81,13 @@ namespace TpaRequests
                 if (TShock.Players[i] != null && TShock.Players[i].Active)
                 RequestsManager.Block(TShock.Players[index], "tp", TShock.Players[i], AutoDeny[index]);
             args.Player.SendInfoMessage("TPAutoDeny {0}abled", AutoDeny[index] ? "en" : "dis");
+        }
+        public void TpAutoAcceptCommand(CommandArgs args)
+        {
+            var index = args.Player.Index;
+            AutoAccept[index] = !AutoAccept[index];
+
+            args.Player.SendInfoMessage("TPAutoAccept {0}abled", AutoAccept[index] ? "en" : "dis");
         }
 
         public void OnGreet(GreetPlayerEventArgs args)
